@@ -9,3 +9,8 @@ edition = "2021"
 rayon = "1.6"
 sha256 = "1.1"
 
+
+# [profile.release]
+# strip = true  # Automatically strip symbols from the binary.
+# lto = true
+# codegen-units = 1

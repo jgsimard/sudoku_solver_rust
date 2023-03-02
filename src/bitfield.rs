@@ -1,4 +1,4 @@
-use crate::constants::{COLUMN_INDEX, NINE_ONES, SQUARE_START};
+use crate::commons::{COLUMN_INDEX, NINE_ONES, SQUARE_START};
 
 #[derive(Debug, Clone)]
 pub struct Solver {
@@ -57,7 +57,6 @@ fn apply_number(options: &mut [u16; 81], index: usize) {
     options[index] = value;
 }
 
-
 /// Check if cell has only one possibility
 fn hidden_singles(options: &mut [u16; 81], index: usize) {
     let value = options[index];
@@ -102,6 +101,26 @@ fn hidden_singles(options: &mut [u16; 81], index: usize) {
 }
 
 impl Solver {
+    // fn new(s: &str) -> Solver {
+    //     let mut options = [NINE_ONES; 81];
+    //     let mut to_explore= core::array::from_fn(|i| i as u8);
+    //     let mut exploration_done= 81;
+    //     for (index, num) in s.chars().enumerate() {
+    //         if let Some(digit) = num.to_digit(10) {
+    //             if digit != 0 {
+    //                 options[index] = 1 << (digit - 1);
+    //                 apply_number(&mut options, index);
+    //                 exploration_done -= 1;
+    //                 to_explore.swap(index, exploration_done);
+    //             }
+    //         }
+    //     }
+    //     Solver {
+    //         options,
+    //         to_explore: to_explore,
+    //         exploration_done: exploration_done,
+    //     }
+    // }
     fn new(s: &str) -> Solver {
         let mut options = [NINE_ONES; 81];
         for (index, num) in s.chars().enumerate() {
@@ -116,7 +135,6 @@ impl Solver {
             options,
             to_explore: core::array::from_fn(|i| i as u8),
             exploration_done: 81,
-            // nb_clone: 0
         }
     }
 
@@ -163,18 +181,17 @@ impl Solver {
                 }
             }
 
-            // Apply a number to cell with min options and push to stack the other options
+            // Apply a number to cell with min options and push the other options on the stack
             if min_length != 10 {
-                let option_ = self.options[min_pos];
+                let option = self.options[min_pos];
+                if option == 0 {
+                    return false;
+                }
                 values.clear();
                 for i in 0..9 {
-                    if option_ & 1 << i != 0 {
+                    if option & 1 << i != 0 {
                         values.push(i + 1);
                     }
-                }
-
-                if values.is_empty() {
-                    return false;
                 }
 
                 self.cell_done(min_pos_x);
@@ -210,7 +227,7 @@ impl Solver {
     }
 }
 
-pub fn solve(sudoku: &str) -> [u8; 81] {
+pub fn bitfield_solve(sudoku: &str) -> [u8; 81] {
     let mut routes = vec![Solver::new(sudoku)];
     while !routes.is_empty() {
         let mut route = routes.pop().unwrap();
@@ -226,29 +243,72 @@ pub fn solve(sudoku: &str) -> [u8; 81] {
 mod tests {
     extern crate test;
     use super::*;
+    use crate::commons::solutions;
+    use sha256::digest;
     use std::error::Error;
     use test::{black_box, Bencher};
 
     #[bench]
-    fn solve_sudoku_bitfield_easy(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    fn solve_sudoku_easy(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
         let sudoku =
             "....79.65.....3..2..5.6..9334..5.1.6.........6.8.2..5995..1.6..7..6.....82.39....";
 
         b.iter(|| {
-            black_box(solve(sudoku));
+            black_box(bitfield_solve(sudoku));
         });
 
         Ok(())
     }
 
     #[bench]
-    fn solve_sudoku_bitfield_hard(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    fn solve_sudoku_hard(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
         let sudoku =
             "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......";
 
         b.iter(|| {
-            black_box(solve(sudoku));
+            black_box(bitfield_solve(sudoku));
         });
+
+        Ok(())
+    }
+
+    // // test bitfield::tests::solve_10k_sudoku    ... bench:   9,500,387 ns/iter (+/- 262,404)
+    // #[bench]
+    // fn solve_10k_sudoku(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    //     let filename = "hard_sudokus.txt";
+    //     b.iter(|| {
+    //         black_box(solutions(filename, bitfield_solve));
+    //     });
+    //     Ok(())
+    // }
+
+    // // A bit slow
+    // // test bitfield::tests::solve_50k_sudoku    ... bench:  70,549,685 ns/iter (+/- 6,431,378)
+    // #[bench]
+    // fn solve_50k_sudoku(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    //     let filename = "all_17_clue_sudokus.txt";
+    //     b.iter(|| {
+    //         black_box(solutions(filename, bitfield_solve));
+    //     });
+    //     Ok(())
+    // }
+
+    #[test]
+    fn solve_10k_sudoku_sha() -> Result<(), Box<dyn Error>> {
+        let filename = "hard_sudokus.txt";
+        let hash = digest(solutions(filename, bitfield_solve));
+        let correct_hash = "b3df4de0e6f9d94b923ff2474db4da792c37e17ed4ad8dca2537fb4d65d35c83";
+        assert_eq!(hash, correct_hash);
+        Ok(())
+    }
+
+    #[test]
+    fn solve_50k_sudoku_sha() -> Result<(), Box<dyn Error>> {
+        let filename = "all_17_clue_sudokus.txt";
+        let hash = digest(solutions(filename, bitfield_solve));
+        let correct_hash = "0bc8dda364db7b99f389b42383e37b411d9fa022204d124cb3c8959eba252f05";
+
+        assert_eq!(hash, correct_hash);
 
         Ok(())
     }

@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 pub const NINE_ONES: u16 = 511; // 0000000111111111 or 0x1FF
 
 #[rustfmt::skip]
@@ -27,15 +29,26 @@ pub const SQUARE_START : [usize; 81] = [
     54, 54, 54, 57, 57, 57, 60, 60, 60
 ];
 
-#[rustfmt::skip]
-pub const ROW_INDEX: [usize; 81] = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3, 3,
-    4, 4, 4, 4, 4, 4, 4, 4, 4,
-    5, 5, 5, 5, 5, 5, 5, 5, 5,
-    6, 6, 6, 6, 6, 6, 6, 6, 6,
-    7, 7, 7, 7, 7, 7, 7, 7, 7,
-    8, 8, 8, 8, 8, 8, 8, 8, 8,
-];
+pub fn solutions(filename: &str, fn_solve: fn(&str) -> [u8; 81]) -> String {
+    let sudokus = std::fs::read_to_string(filename).unwrap();
+    let nb_sudoku: String = sudokus.lines().take(1).collect();
+    let solutions = sudokus
+        .lines()
+        .skip(1)
+        // .par_bridge() // doesnt preserve order => bad sha256
+        .collect::<Vec<&str>>()
+        .par_iter()
+        .map(|sudoku| {
+            format!(
+                "{},{}",
+                sudoku,
+                fn_solve(sudoku)
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<String>()
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+    nb_sudoku + "\n" + &solutions + "\n"
+}
