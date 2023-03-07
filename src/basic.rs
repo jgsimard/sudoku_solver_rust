@@ -9,17 +9,32 @@ pub struct Sudoku {
 
 impl Sudoku {
     pub fn new(s: &str) -> Sudoku {
+        // read sudoku
         let mut array = [0; 81];
         for (index, num) in s.chars().enumerate() {
             if let Some(digit) = num.to_digit(10) {
                 array[index] = digit as u8;
             }
         }
+
+        // remove clues from to_explore  : it is slower : WHY?
+        let mut to_explore: [usize; 81] = core::array::from_fn(|i| i);
+        let mut exploration_done = 81;
+        let mut x = 0;
+        while x < exploration_done {
+            if array[to_explore[x]] != 0 {
+                exploration_done -= 1;
+                to_explore.swap(x, exploration_done);
+            } else {
+                x += 1;
+            }
+        }
+
         Sudoku {
             array,
             steps: 0,
-            to_explore: core::array::from_fn(|i| i),
-            exploration_done: 81,
+            to_explore,
+            exploration_done,
         }
     }
 
@@ -54,6 +69,7 @@ impl Sudoku {
         }
         let index = self.to_explore[index_of_index_min];
         for num in possibles {
+            // Try a number
             self.array[index] = num;
             self.exploration_done -= 1;
             self.to_explore
@@ -61,6 +77,7 @@ impl Sudoku {
             if self.solve() {
                 return true;
             }
+            // Number didnt work, backtrack
             self.to_explore
                 .swap(index_of_index_min, self.exploration_done);
             self.exploration_done += 1;

@@ -101,27 +101,8 @@ fn hidden_singles(options: &mut [u16; 81], index: usize) {
 }
 
 impl Solver {
-    // fn new(s: &str) -> Solver {
-    //     let mut options = [NINE_ONES; 81];
-    //     let mut to_explore= core::array::from_fn(|i| i as u8);
-    //     let mut exploration_done= 81;
-    //     for (index, num) in s.chars().enumerate() {
-    //         if let Some(digit) = num.to_digit(10) {
-    //             if digit != 0 {
-    //                 options[index] = 1 << (digit - 1);
-    //                 apply_number(&mut options, index);
-    //                 exploration_done -= 1;
-    //                 to_explore.swap(index, exploration_done);
-    //             }
-    //         }
-    //     }
-    //     Solver {
-    //         options,
-    //         to_explore: to_explore,
-    //         exploration_done: exploration_done,
-    //     }
-    // }
     fn new(s: &str) -> Solver {
+        // read sudoku
         let mut options = [NINE_ONES; 81];
         for (index, num) in s.chars().enumerate() {
             if let Some(digit) = num.to_digit(10) {
@@ -131,10 +112,23 @@ impl Solver {
                 }
             }
         }
+
+        let mut to_explore: [u8; 81] = core::array::from_fn(|i| i as u8);
+        let mut exploration_done = 81;
+        let mut x = 7; // wtf, if does not work if <7 for only ONE sudoku in the 10k, WHY????
+        while x < exploration_done {
+            if options[to_explore[x] as usize].count_ones() == 1 {
+                exploration_done -= 1;
+                to_explore.swap(x, exploration_done);
+            } else {
+                x += 1;
+            }
+        }
+
         Solver {
             options,
-            to_explore: core::array::from_fn(|i| i as u8),
-            exploration_done: 81,
+            to_explore,
+            exploration_done,
         }
     }
 
