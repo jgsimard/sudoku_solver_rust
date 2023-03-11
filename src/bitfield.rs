@@ -235,57 +235,57 @@ pub fn bitfield_solve(sudoku: &str) -> [u8; 81] {
 
 #[cfg(test)]
 mod tests {
-    extern crate test;
+    // extern crate test;
     use super::*;
     use crate::commons::solutions;
     use sha256::digest;
     use std::error::Error;
-    use test::{black_box, Bencher};
 
-    #[bench]
-    fn solve_sudoku_easy(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    #[test]
+    fn easy() -> Result<(), Box<dyn Error>> {
         let sudoku =
             "....79.65.....3..2..5.6..9334..5.1.6.........6.8.2..5995..1.6..7..6.....82.39....";
+        let expected_sol = [
+            1, 8, 3, 2, 7, 9, 4, 6, 5, 4, 6, 9, 5, 8, 3, 7, 1, 2, 2, 7, 5, 4, 6, 1, 8, 9, 3, 3, 4,
+            2, 9, 5, 8, 1, 7, 6, 5, 9, 7, 1, 3, 6, 2, 8, 4, 6, 1, 8, 7, 2, 4, 3, 5, 9, 9, 5, 4, 8,
+            1, 2, 6, 3, 7, 7, 3, 1, 6, 4, 5, 9, 2, 8, 8, 2, 6, 3, 9, 7, 5, 4, 1,
+        ];
 
-        b.iter(|| {
-            black_box(bitfield_solve(sudoku));
-        });
+        let sol = bitfield_solve(sudoku);
 
+        assert_eq!(expected_sol, sol);
         Ok(())
     }
 
-    #[bench]
-    fn solve_sudoku_hard(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
+    #[test]
+    fn hard() -> Result<(), Box<dyn Error>> {
         let sudoku =
             "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......";
+        let expected_sol = [
+            4, 1, 7, 3, 6, 9, 8, 2, 5, 6, 3, 2, 1, 5, 8, 9, 4, 7, 9, 5, 8, 7, 2, 4, 3, 1, 6, 8, 2,
+            5, 4, 3, 7, 1, 6, 9, 7, 9, 1, 5, 8, 6, 4, 3, 2, 3, 4, 6, 9, 1, 2, 7, 5, 8, 2, 8, 9, 6,
+            4, 3, 5, 7, 1, 5, 7, 3, 2, 9, 1, 6, 8, 4, 1, 6, 4, 8, 7, 5, 2, 9, 3,
+        ];
+        let sol = bitfield_solve(sudoku);
 
-        b.iter(|| {
-            black_box(bitfield_solve(sudoku));
-        });
-
+        assert_eq!(expected_sol, sol);
         Ok(())
     }
 
-    // // test bitfield::tests::solve_10k_sudoku    ... bench:   9,500,387 ns/iter (+/- 262,404)
-    // #[bench]
-    // fn solve_10k_sudoku(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
-    //     let filename = "hard_sudokus.txt";
-    //     b.iter(|| {
-    //         black_box(solutions(filename, bitfield_solve));
-    //     });
-    //     Ok(())
-    // }
+    #[test]
+    fn weird_case() -> Result<(), Box<dyn Error>> {
+        let sudoku =
+            "010300600500280000080000300071000000000700400600010205005000080000050703806004001";
+        let expected_sol = [
+            2, 1, 7, 3, 4, 5, 6, 9, 8, 5, 6, 3, 2, 8, 9, 1, 4, 7, 9, 8, 4, 1, 6, 7, 3, 5, 2, 4, 7,
+            1, 5, 2, 6, 8, 3, 9, 3, 5, 2, 7, 9, 8, 4, 1, 6, 6, 9, 8, 4, 1, 3, 2, 7, 5, 7, 2, 5, 6,
+            3, 1, 9, 8, 4, 1, 4, 9, 8, 5, 2, 7, 6, 3, 8, 3, 6, 9, 7, 4, 5, 2, 1,
+        ];
+        let sol = bitfield_solve(sudoku);
 
-    // // A bit slow
-    // // test bitfield::tests::solve_50k_sudoku    ... bench:  70,549,685 ns/iter (+/- 6,431,378)
-    // #[bench]
-    // fn solve_50k_sudoku(b: &mut Bencher) -> Result<(), Box<dyn Error>> {
-    //     let filename = "all_17_clue_sudokus.txt";
-    //     b.iter(|| {
-    //         black_box(solutions(filename, bitfield_solve));
-    //     });
-    //     Ok(())
-    // }
+        assert_eq!(expected_sol, sol);
+        Ok(())
+    }
 
     #[test]
     fn solve_10k_sudoku_sha() -> Result<(), Box<dyn Error>> {

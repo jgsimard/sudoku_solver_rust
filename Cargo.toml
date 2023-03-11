@@ -9,8 +9,21 @@ edition = "2021"
 rayon = "1.6"
 sha256 = "1.1"
 
+[dev-dependencies]
+criterion = "0.4"
 
-# [profile.release]
-# strip = true  # Automatically strip symbols from the binary.
+[lib]
+name = "sudoku_solver"
+crate-type = ["lib"]
+test = false
+bench = false
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
 # lto = true
 # codegen-units = 1
+# panic = "abort"
+
+[[bench]]
+name = "benchmark"
+harness = false
