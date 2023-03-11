@@ -93,21 +93,19 @@ impl Sudoku {
         let mut possibles_min = Vec::new();
         for index_of_index in 0..self.exploration_done {
             let i = self.to_explore[index_of_index];
-            if self.array[i] == 0 {
-                let possibles: Vec<u8> = (1..10)
-                    .filter_map(|k| self.add_works(k, i).then_some(k))
-                    .collect();
-                let len = possibles.len();
-                match len {
-                    0 => return None,
-                    1 => return Some((possibles, index_of_index, false)),
-                    _ => {
-                        if len < min_possibilities {
-                            min_possibilities = len;
-                            index_min = index_of_index;
-                            possibles_min = possibles;
-                            solved = false;
-                        }
+            let possibles: Vec<u8> = (1..10)
+                .filter_map(|k| self.add_works(k, i).then_some(k))
+                .collect();
+            let len = possibles.len();
+            match len {
+                0 => return None,
+                1 => return Some((possibles, index_of_index, false)),
+                _ => {
+                    if len < min_possibilities {
+                        min_possibilities = len;
+                        index_min = index_of_index;
+                        possibles_min = possibles;
+                        solved = false;
                     }
                 }
             }
